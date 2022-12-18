@@ -9,14 +9,15 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      electionId: {
-        type: Sequelize.STRING,
-      },
       electionName: {
         type: Sequelize.STRING,
       },
       customString: {
         type: Sequelize.STRING,
+      },
+      isLive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,

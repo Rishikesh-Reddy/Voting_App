@@ -10,25 +10,26 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Elections.belongsTo(models.ElectionAdmin, {
-        foreignKey: "userId",
+        foreignKey: "UId",
       });
 
       Elections.hasMany(models.Question, {
-        foreignKey: "electionId",
+        foreignKey: "EId",
         onDelete: "CASCADE",
       });
 
       Elections.hasMany(models.Voters, {
-        foreignKey: "electionId",
+        foreignKey: "EId",
         onDelete: "CASCADE",
       });
     }
   }
   Elections.init(
     {
-      electionId: DataTypes.STRING,
+      electionId: DataTypes.INTEGER,
       electionName: DataTypes.STRING,
       customString: DataTypes.STRING,
+      isLive: DataTypes.BOOLEAN,
     },
     {
       sequelize,

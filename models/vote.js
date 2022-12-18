@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+// eslint-disable-next-line no-unused-vars
 module.exports = (sequelize, DataTypes) => {
   class Vote extends Model {
     /**
@@ -10,24 +11,22 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Vote.belongsTo(models.Voters, {
-        foreignKey: "voterId",
+        foreignKey: "VId",
       });
 
       Vote.hasOne(models.Question, {
-        foreignKey: "questionId",
+        foreignKey: "QId",
         onDelete: "CASCADE",
       });
 
       Vote.hasOne(models.Option, {
-        foreignKey: "optionId",
+        foreignKey: "OId",
         onDelete: "CASCADE",
       });
     }
   }
   Vote.init(
-    {
-      voteId: DataTypes.STRING,
-    },
+    {},
     {
       sequelize,
       modelName: "Vote",

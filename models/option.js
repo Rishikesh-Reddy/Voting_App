@@ -10,19 +10,19 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Option.hasMany(models.Vote, {
-        foreignKey: "optionId",
+        foreignKey: "OId",
         onDelete: "CASCADE",
       });
 
       Option.belongsTo(models.Question, {
-        foreignKey: "questionId",
+        foreignKey: "QId",
       });
     }
   }
   Option.init(
     {
       desc: DataTypes.STRING,
-      optionId: DataTypes.STRING,
+      optionId: DataTypes.INTEGER,
     },
     {
       sequelize,

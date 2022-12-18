@@ -9,9 +9,6 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      questionId: {
-        type: Sequelize.STRING,
-      },
       title: {
         type: Sequelize.STRING,
       },

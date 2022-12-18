@@ -9,13 +9,13 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Voters.hasMany(models.Votes, {
-        foreignKey: "voterId",
+      Voters.hasMany(models.Vote, {
+        foreignKey: "Vid",
         onDelete: "CASCADE",
       });
 
       Voters.hasMany(models.Elections, {
-        foreignKey: "electionId",
+        foreignKey: "EId",
         onDelete: "CASCADE",
       });
     }

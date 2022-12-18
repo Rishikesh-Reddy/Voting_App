@@ -9,11 +9,11 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.addColumn("Voters", "electionId", {
+    await queryInterface.addColumn("Voters", "EId", {
       type: Sequelize.DataTypes.INTEGER,
     }),
       await queryInterface.addConstraint("Voters", {
-        fields: ["electionId"],
+        fields: ["EId"],
         type: "foreign key",
         name: "custom_fkey_electionId",
         references: {
@@ -21,12 +21,12 @@ module.exports = {
           field: "id",
         },
       }),
-      await queryInterface.addColumn("Elections", "userId", {
+      await queryInterface.addColumn("Elections", "UId", {
         type: Sequelize.DataTypes.INTEGER,
       });
 
     await queryInterface.addConstraint("Elections", {
-      fields: ["userId"],
+      fields: ["UId"],
       type: "foreign key",
       name: "custom_fkey_userId",
       references: {
@@ -34,11 +34,11 @@ module.exports = {
         field: "id",
       },
     }),
-      await queryInterface.addColumn("Questions", "electionId", {
+      await queryInterface.addColumn("Questions", "EId", {
         type: Sequelize.DataTypes.INTEGER,
       }),
       await queryInterface.addConstraint("Questions", {
-        fields: ["electionId"],
+        fields: ["EId"],
         type: "foreign key",
         name: "custom_fkey_electionId",
         references: {
@@ -46,11 +46,11 @@ module.exports = {
           field: "id",
         },
       }),
-      await queryInterface.addColumn("Options", "questionId", {
+      await queryInterface.addColumn("Options", "QId", {
         type: Sequelize.DataTypes.INTEGER,
       }),
       await queryInterface.addConstraint("Options", {
-        fields: ["questionId"],
+        fields: ["QId"],
         type: "foreign key",
         name: "custom_fkey_questionId",
         references: {
@@ -58,11 +58,11 @@ module.exports = {
           field: "id",
         },
       }),
-      await queryInterface.addColumn("Votes", "questionId", {
+      await queryInterface.addColumn("Votes", "QId", {
         type: Sequelize.DataTypes.INTEGER,
       }),
       await queryInterface.addConstraint("Votes", {
-        fields: ["questionId"],
+        fields: ["QId"],
         type: "foreign key",
         name: "custom_fkey_questionId",
         references: {
@@ -70,12 +70,12 @@ module.exports = {
           field: "id",
         },
       }),
-      await queryInterface.addColumn("Votes", "optionId", {
+      await queryInterface.addColumn("Votes", "OId", {
         type: Sequelize.DataTypes.INTEGER,
       });
 
     await queryInterface.addConstraint("Votes", {
-      fields: ["optionId"],
+      fields: ["OId"],
       type: "foreign key",
       name: "custom_fkey_optionId",
       references: {
@@ -84,12 +84,12 @@ module.exports = {
       },
     });
 
-    await queryInterface.addColumn("Votes", "voterId", {
+    await queryInterface.addColumn("Votes", "VId", {
       type: Sequelize.DataTypes.INTEGER,
     });
 
     await queryInterface.addConstraint("Votes", {
-      fields: ["voterId"],
+      fields: ["VId"],
       type: "foreign key",
       name: "custom_fkey_voterId",
       references: {
@@ -107,12 +107,12 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.removeColumn("voters", "electionId");
-    await queryInterface.removeColumn("Elections", "userId");
-    await queryInterface.removeColumn("Questions", "electionId");
-    await queryInterface.removeColumn("Options", "questionId");
-    await queryInterface.removeColumn("Votes", "questionId");
-    await queryInterface.removeColumn("Votes", "optionId");
-    await queryInterface.removeColumn("Votes", "voterId");
+    await queryInterface.removeColumn("voters", "EId");
+    await queryInterface.removeColumn("Elections", "UId");
+    await queryInterface.removeColumn("Questions", "EId");
+    await queryInterface.removeColumn("Options", "QId");
+    await queryInterface.removeColumn("Votes", "QId");
+    await queryInterface.removeColumn("Votes", "OId");
+    await queryInterface.removeColumn("Votes", "VId");
   },
 };

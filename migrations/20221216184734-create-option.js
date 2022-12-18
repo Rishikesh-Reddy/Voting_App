@@ -12,9 +12,6 @@ module.exports = {
       desc: {
         type: Sequelize.STRING,
       },
-      optionId: {
-        type: Sequelize.STRING,
-      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
