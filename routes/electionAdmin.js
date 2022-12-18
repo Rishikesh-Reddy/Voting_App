@@ -1,26 +1,13 @@
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const { ElectionAdmin } = require("../models");
+const { Elections } = require("../models");
 const router = require("express").Router();
 const connectEnsureLogin = require("connect-ensure-login");
 
 const saltRounds = 10;
 
-router.get(
-  "/",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
-  (req, res) => {
-    if (req.user) {
-      res.render("admin/index", {
-        title: "Admin Dashboard",
-        csrfToken: req.csrfToken(),
-      });
-    } else {
-      res.redirect("/admin/login");
-    }
-  }
-);
-
+// Login, Signup, Logout Routes
 router.get(
   "/login",
   connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/" }),
@@ -88,5 +75,27 @@ router.get("/signout", (req, res, next) => {
     res.redirect("/");
   });
 });
+
+// Dashboard and election routes
+router.get(
+  "/",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    const liveElections = await Elections.getLiveElectionsofUser({
+      UId: req.user.id,
+    });
+    const elections = await Elections.getElectionsofUser({ UId: req.user.id });
+    if (req.accepts("html")) {
+      res.render("admin/index", {
+        title: "Admin Dashboard",
+        liveElections,
+        elections,
+        csrfToken: req.csrfToken(),
+      });
+    } else {
+      res.json({ liveElections, elections });
+    }
+  }
+);
 
 module.exports = router;

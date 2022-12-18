@@ -15,6 +15,11 @@
             <h1>Admin Dashboard</h1>
             <br>
             <a href="/admin/signout">Signout</a>
+            <br><br>
+            <button class="bg-green-600 text-white px-5 py-1 5 rounded font-medium mr-2 mb-2">Create Election</button>
+            <br><br>
+            <%- include('electionCard', {title: "Elections Created but not Launched", elections: elections, id: "elections"}) %>
+            <%- include('electionCard', {title: "Live Elections", elections: liveElections, id: "live-elections"}) %>
         </div> 
     </div>
     

@@ -23,10 +23,36 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
       });
     }
+
+    static async createElection({ electionName, customString, UId }) {
+      const election = await Elections.create({
+        electionName: electionName,
+        customString: customString,
+        UId: UId,
+      });
+      return election;
+    }
+
+    static async getElectionsofUser({ UId }) {
+      return await this.findAll({
+        where: {
+          UId: UId,
+          isLive: false,
+        },
+      });
+    }
+
+    static async getLiveElectionsofUser({ UId }) {
+      return await this.findAll({
+        where: {
+          UId: UId,
+          isLive: true,
+        },
+      });
+    }
   }
   Elections.init(
     {
-      electionId: DataTypes.INTEGER,
       electionName: DataTypes.STRING,
       customString: DataTypes.STRING,
       isLive: DataTypes.BOOLEAN,

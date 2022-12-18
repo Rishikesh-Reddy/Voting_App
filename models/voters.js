@@ -10,11 +10,11 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Voters.hasMany(models.Vote, {
-        foreignKey: "Vid",
+        foreignKey: "VId",
         onDelete: "CASCADE",
       });
 
-      Voters.hasMany(models.Elections, {
+      Voters.belongsTo(models.Elections, {
         foreignKey: "EId",
         onDelete: "CASCADE",
       });
