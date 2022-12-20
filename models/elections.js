@@ -53,8 +53,40 @@ module.exports = (sequelize, DataTypes) => {
   }
   Elections.init(
     {
-      electionName: DataTypes.STRING,
-      customString: DataTypes.STRING,
+      electionName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "Election name cannot be empty",
+          },
+          notEmpty: {
+            msg: "Election name cannot be empty",
+          },
+          islen: function (val) {
+            if (val.length < 5) {
+              throw new Error(
+                "Election name must be atleast 5 characters long"
+              );
+            }
+          },
+        },
+      },
+      // Can be used to generate a custom URL for the election and should be unique for each election
+      customString: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: true,
+        validate: {
+          islen: function (val) {
+            if (val != null && val.length > 0 && val.length < 5) {
+              throw new Error(
+                "Custom string must be atleast 5 characters long"
+              );
+            }
+          },
+        },
+      },
       isLive: DataTypes.BOOLEAN,
     },
     {

@@ -98,4 +98,27 @@ router.get(
   }
 );
 
+router.post(
+  "/elections",
+  connectEnsureLogin.ensureLoggedIn(),
+  async (req, res) => {
+    const election = {
+      electionName: req.body.name,
+      customString: req.body.customString,
+      UId: req.user.id,
+    };
+    try {
+      await Elections.createElection(election);
+      res.redirect("/admin/");
+    } catch (error) {
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      // console.log(error.errors.map((error) => error.message));
+      res.redirect("/admin/");
+    }
+  }
+);
+
 module.exports = router;

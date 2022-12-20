@@ -63,4 +63,17 @@ describe("Testing Functionalities of Election Admin", () => {
     let res = await agent.get("/admin/");
     expect(res.statusCode).toEqual(200);
   });
+
+  test("Testing Create Election Functionality", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user1@gmail.com", "password");
+    let res = await agent.get("/admin/");
+    const csrfToken = extractCSRFToken(res);
+    res = await agent.post("/admin/elections").send({
+      _csrf: csrfToken,
+      name: "Test Election",
+      cstring: "test_election",
+    });
+    expect(res.statusCode).toEqual(302);
+  });
 });
