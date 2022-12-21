@@ -19,11 +19,75 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
       });
     }
+
+    static async getAllVotersofElection({ EId, UId }) {
+      return await this.findAll({
+        where: {
+          EId: EId,
+        },
+        include: [
+          {
+            model: sequelize.models.Elections,
+            where: {
+              UId: UId,
+              id: EId,
+            },
+          },
+        ],
+      });
+    }
+
+    static async createVoter({
+      voterid,
+      password,
+      votername,
+      firstname,
+      lastname,
+      EId,
+    }) {
+      const voter = await Voters.create({
+        voterid: voterid,
+        password: password,
+        votername: votername,
+        firstname: firstname,
+        lastname: lastname,
+        EId: EId,
+      });
+      return voter;
+    }
   }
   Voters.init(
     {
-      voterid: DataTypes.STRING,
-      password: DataTypes.STRING,
+      voterid: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          notNull: {
+            msg: "Voter ID cannot be null",
+          },
+          notEmpty: {
+            msg: "Voter ID cannot be empty",
+          },
+          islen: function (value) {
+            if (value.length < 8) {
+              throw new Error("Voter ID must be atleast 8 characters long");
+            }
+          },
+        },
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "Password cannot be null",
+          },
+          notEmpty: {
+            msg: "Password cannot be empty",
+          },
+        },
+      },
       votername: DataTypes.STRING,
       firstname: DataTypes.STRING,
       lastname: DataTypes.STRING,

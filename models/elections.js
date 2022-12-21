@@ -50,6 +50,15 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
     }
+    static async isElectionbelongstoUser({ EId, UId }) {
+      const election = await this.findOne({
+        where: {
+          id: EId,
+          UId: UId,
+        },
+      });
+      return election;
+    }
   }
   Elections.init(
     {
@@ -87,7 +96,10 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-      isLive: DataTypes.BOOLEAN,
+      isLive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       sequelize,

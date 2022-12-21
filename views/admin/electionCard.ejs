@@ -12,14 +12,9 @@
       class="flex items-center w-fit my-2 px-2 py-1 rounded hover:bg-purple-50 group"
     >
 
-      <label
-        for="election-checkbox-<%= election.id %>"
-        class="text-sm ml-2 text-gray-600 cursor-pointer"
-      >
-        <%= election.electionName %>
-      </label>
+      <h6 class="text-md ml-2 text-gray-600 cursor-pointer"><a href="/admin/election/voters/<%= election.id %>"><%= election.electionName %></a></h6>
       <a
-        href="#"
+        href="/admin/election/voters/<%= election.id %>"
         class="edit-icon ml-2"
       >
         <!-- Edit pencil icon -->
