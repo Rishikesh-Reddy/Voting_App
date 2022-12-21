@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.set("view engine", "ejs");
 app.use(cookieParser("Some secret info"));
-app.use(csrf("UicgFjabMtvsSJEHUSfK3Dz0NR6K0pIm", ["DELETE", "PUT", "POST"]));
+app.use(flash());
 app.use(
   session({
     secret: "SuperSecrectInformation",
@@ -25,8 +25,8 @@ app.use(
     saveUninitialized: true,
   })
 );
+app.use(csrf("UicgFjabMtvsSJEHUSfK3Dz0NR6K0pIm", ["DELETE", "PUT", "POST"]));
 
-app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(function (request, response, next) {

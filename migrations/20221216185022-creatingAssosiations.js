@@ -16,6 +16,7 @@ module.exports = {
         fields: ["EId"],
         type: "foreign key",
         name: "custom_fkey_electionId",
+        onDelete: "CASCADE",
         references: {
           table: "Elections",
           field: "id",
@@ -29,6 +30,7 @@ module.exports = {
       fields: ["UId"],
       type: "foreign key",
       name: "custom_fkey_userId",
+      onDelete: "CASCADE",
       references: {
         table: "ElectionAdmins",
         field: "id",
@@ -41,6 +43,7 @@ module.exports = {
         fields: ["EId"],
         type: "foreign key",
         name: "custom_fkey_electionId",
+        onDelete: "CASCADE",
         references: {
           table: "Elections",
           field: "id",
@@ -53,6 +56,7 @@ module.exports = {
         fields: ["QId"],
         type: "foreign key",
         name: "custom_fkey_questionId",
+        onDelete: "CASCADE",
         references: {
           table: "Questions",
           field: "id",
@@ -65,6 +69,7 @@ module.exports = {
         fields: ["QId"],
         type: "foreign key",
         name: "custom_fkey_questionId",
+        onDelete: "CASCADE",
         references: {
           table: "Questions",
           field: "id",
@@ -78,6 +83,7 @@ module.exports = {
       fields: ["OId"],
       type: "foreign key",
       name: "custom_fkey_optionId",
+      onDelete: "CASCADE",
       references: {
         table: "Options",
         field: "id",
@@ -92,6 +98,7 @@ module.exports = {
       fields: ["VId"],
       type: "foreign key",
       name: "custom_fkey_voterId",
+      onDelete: "CASCADE",
       references: {
         table: "Voters",
         field: "id",

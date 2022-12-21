@@ -44,13 +44,9 @@
             <br><br><br>
             <h1 class="text-4xl"><%= election.electionName %></h1>
             <br><br>
-            <h4 class="">There are 
-                <span id="voterCount" class="bg-gray-300 ml-2 px-2 rounded text-sm">
-                <%= voterCount %>
-                </span>
-                &nbsp registered voters in this Election</h4>
+            <h4 class="">There are <%= voterCount %> registerd in this Election</h4>
             <br>
-            <a href="/admin/election/voters/<%= election.id %>" class="text-xl font-semibold underline">Manage Voters</a>
+            <a href="/admin/election/voters/<%= election.id %>" >Manage Voters</a>
             <div>
                 <div class="hideMe">
                     <% if(messages && messages.error && messages.error.length > 0)  { %>

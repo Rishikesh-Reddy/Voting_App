@@ -45,31 +45,31 @@ describe("Testing Functionalities of Election Admin", () => {
       password: "password",
     });
     expect(res.statusCode).toEqual(302);
-    res = await agent.get("/admin/");
+    res = await agent.get("/admin/elections");
     expect(res.statusCode).toEqual(200);
   });
 
   test("Testing Sign Out Functionality", async () => {
-    let res = await agent.get("/admin/");
+    let res = await agent.get("/admin/elections");
     expect(res.statusCode).toEqual(200);
     res = await agent.get("/admin/signout");
     expect(res.statusCode).toEqual(302);
-    res = await agent.get("/admin/");
+    res = await agent.get("/admin/elections");
     expect(res.statusCode).toBe(302);
   });
 
   test("Testing Login Functionality", async () => {
     await login(agent, "user1@gmail.com", "password");
-    let res = await agent.get("/admin/");
+    let res = await agent.get("/admin/elections");
     expect(res.statusCode).toEqual(200);
   });
 
   test("Testing Create Election Functionality", async () => {
     const agent = request.agent(server);
     await login(agent, "user1@gmail.com", "password");
-    let res = await agent.get("/admin/");
+    let res = await agent.get("/admin/elections");
     const csrfToken = extractCSRFToken(res);
-    res = await agent.post("/admin/elections").send({
+    res = await agent.post("/admin/election").send({
       _csrf: csrfToken,
       name: "Test Election",
       customString: "test_election",
@@ -81,7 +81,9 @@ describe("Testing Functionalities of Election Admin", () => {
   test("Testing Adding Voter to Election Functionality", async () => {
     const agent = request.agent(server);
     await login(agent, "user1@gmail.com", "password");
-    let res = await agent.get("/admin/").set("Accept", "application/json");
+    let res = await agent
+      .get("/admin/elections")
+      .set("Accept", "application/json");
     let latestElection = JSON.parse(res.text).elections[
       JSON.parse(res.text).elections.length - 1
     ];
@@ -97,5 +99,27 @@ describe("Testing Functionalities of Election Admin", () => {
       EId: latestElection.id,
     });
     expect(addVoterResponse.statusCode).toEqual(302);
+  });
+
+  // Add Test for Deleting Election
+  test("Testing Deleting Election Functionality", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user1@gmail.com", "password");
+    let res = await agent
+      .get("/admin/elections")
+      .set("Accept", "application/json");
+    let latestElection = JSON.parse(res.text).elections[
+      JSON.parse(res.text).elections.length - 1
+    ];
+
+    res = await agent.get("/admin/elections/");
+    const csrfToken = extractCSRFToken(res);
+    deleteElectionResponse = await agent
+      .post("/admin/elections/" + latestElection.id)
+      .send({
+        _csrf: csrfToken,
+      });
+
+    expect(deleteElectionResponse.statusCode).toEqual(302);
   });
 });
