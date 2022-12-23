@@ -55,6 +55,15 @@ module.exports = (sequelize, DataTypes) => {
       });
       return voter;
     }
+
+    static async remove(VId, EId) {
+      return this.destroy({
+        where: {
+          id: VId,
+          EId: EId,
+        },
+      });
+    }
   }
   Voters.init(
     {
@@ -70,7 +79,7 @@ module.exports = (sequelize, DataTypes) => {
             msg: "Voter ID cannot be empty",
           },
           islen: function (value) {
-            if (value.length < 8) {
+            if (value.length < 3) {
               throw new Error("Voter ID must be atleast 8 characters long");
             }
           },

@@ -51,26 +51,27 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
     static async isElectionbelongstoUser({ EId, UId }) {
-      const electionPresent = await this.findOne({
+      let election = await this.findOne({
         where: {
           id: EId,
         },
+        include: [
+          {
+            model: sequelize.models.ElectionAdmin,
+            where: {
+              id: UId,
+            },
+          },
+        ],
       });
-      if (electionPresent) {
-        if (electionPresent.UId === UId) {
-          return {
-            success: true,
-          };
-        } else {
-          return {
-            success: false,
-            message: "You are authorized to Access That Election",
-          };
-        }
+      if (election) {
+        return {
+          success: true,
+        };
       } else {
         return {
           success: false,
-          message: "That Election Does not Exist",
+          message: "Election does not belong to user",
         };
       }
     }

@@ -41,6 +41,30 @@
             display:inline;
         }
     </style>
+    <script>
+        var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // console.log(token)
+        function deleteVoter(id){
+            console.log(token)
+            fetch(`/admin/election/voters/<%= EID %>/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    _csrf: token
+                })
+            })
+            .then((res) => {
+                if (res.ok){
+                    window.location.reload()
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+        }
+    </script>
 </head>
 <body>
     <div class="grid grid-cols-6">

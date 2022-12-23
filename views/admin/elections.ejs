@@ -22,10 +22,9 @@
         var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         function deleteElection(id){
             fetch(`/admin/elections/${id}`, {
-                method: "POST",
+                method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
-                    "Access-Control-Allow-Methods": "DELETE",
                 },
                 body: JSON.stringify({
                     _csrf: token,
