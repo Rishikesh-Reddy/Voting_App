@@ -98,7 +98,9 @@
             <!-- <button class="bg-green-600 text-white px-5 py-1 5 rounded font-medium mr-2 mb-2">Create Election</button> -->
             <br>
             <%- include('electionCard', {title: "Elections Created but not Launched", elections: elections, id: "elections"}) %>
+            <br><br>
             <%- include('electionCard', {title: "Live Elections", elections: liveElections, id: "live-elections"}) %>
+            <br>
             <div>
                 <div class="hideMe">
                     <% if(messages && messages.error && messages.error.length > 0)  { %>

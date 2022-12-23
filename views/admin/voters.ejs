@@ -45,7 +45,6 @@
         var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // console.log(token)
         function deleteVoter(id){
-            console.log(token)
             fetch(`/admin/election/voters/<%= EID %>/${id}`, {
                 method: 'DELETE',
                 headers: {

@@ -128,7 +128,7 @@ router.post(
         error.errors.map((error) => error.message)
       );
       console.log(error.errors.map((error) => error.message));
-      res.redirect("/admin/");
+      res.redirect("/admin/elections");
     }
   }
 );
