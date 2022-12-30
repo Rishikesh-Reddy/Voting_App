@@ -50,6 +50,31 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
     }
+
+    static async launchElection({ EId, UId }) {
+      let election = await this.findOne({
+        where: {
+          id: EId,
+          UId: UId,
+        },
+      });
+      if (election) {
+        await election.update({ isLive: true });
+      }
+    }
+
+    static async stopElection({ EId, UId }) {
+      let election = await this.findOne({
+        where: {
+          id: EId,
+          UId: UId,
+        },
+      });
+      if (election) {
+        await election.update({ isLive: false });
+      }
+    }
+
     static async isElectionbelongstoUser({ EId, UId }) {
       let election = await this.findOne({
         where: {
@@ -67,6 +92,7 @@ module.exports = (sequelize, DataTypes) => {
       if (election) {
         return {
           success: true,
+          islive: election.isLive,
         };
       } else {
         return {
@@ -124,6 +150,20 @@ module.exports = (sequelize, DataTypes) => {
               throw new Error(
                 "Custom string must be atleast 5 characters long"
               );
+            }
+          },
+          isUnique: async function (val) {
+            if (val != null && val.length > 0) {
+              let election = await Elections.findOne({
+                where: {
+                  customString: val,
+                },
+              });
+              if (election) {
+                throw new Error(
+                  "Election with this custom string already exists"
+                );
+              }
             }
           },
         },

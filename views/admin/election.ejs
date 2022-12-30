@@ -58,7 +58,16 @@
                 </span>
                 &nbsp Question in this Election</h4>
             <br>
-            <a href="/admin/election/questions/<%= election.id %>" class="text-xl font-semibold underline">Manage Questions</a>
+            <a href="/admin/election/questions/<%= election.id %>" class="text-xl font-semibold underline" id="questionButton">Manage Questions</a>
+            <br><br>
+            <button class="bg-green-500 text-white px-2 py-1 rounded" onclick="launchElection()">Launch Election</button>
+            <button class="bg-green-500 text-white px-2 py-1 rounded" onclick="UnLaunchElection()">Stop Election</button><br>
+            <br>
+            <div class="hidden" id="ElectionLaunch">
+                <ul class="bg-green-100 rounded border border-green-200 border-2" id="ElectionLaunchul">
+                    <li class="text-center hideMe" id="ElectionLaunchli"></li>
+                </ul>
+            </div> 
             <div>
                 <div class="hideMe">
                     <% if(messages && messages.error && messages.error.length > 0)  { %>
@@ -86,5 +95,63 @@
             </div>
         </div>
     </div>
+    <script>
+        if (<%= election.isLive %>){
+            document.getElementById("questionButton").classList.add("hidden")
+        }
+        function launchElection() {
+            // document.getElementById("questionButton").classList.add("hidden")
+            console.log("Launching Election")
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch('/admin/election/launch/<%= election.id %>', {
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body:JSON.stringify({
+                    _csrf: token
+                })
+            })
+            .then((res) => {
+                if (res.ok){
+                    window.location.reload()
+                    // showSucess("Election Launched Successfully")
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        }
+        function UnLaunchElection() {
+            // document.getElementById("questionButton").classList.remove("hidden")
+            console.log("Stoping Election")
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch('/admin/election/stop/<%= election.id %>', {
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    _csrf: token
+                })
+            })
+            .then((res) => {
+                if (res.ok){
+                    window.location.reload()
+                    // showSucess("Election Stopped Successfully")
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        }
+        function showSucess(success) {
+            document.getElementById('ElectionLaunchli').innerText = success;
+            document.getElementById('ElectionLaunch').classList.remove('hidden')
+            setTimeout(() => {
+                document.getElementById('ElectionLaunch').classList.add('hidden')
+            }, 3000);
+        }
+    </script>
 </body>
 </html>

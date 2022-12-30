@@ -1,7 +1,8 @@
-const passport = require("passport");
-const bcrypt = require("bcrypt");
 const router = require("express").Router();
 const connectEnsureLogin = require("connect-ensure-login");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const bcrypt = require("bcrypt");
 const {
   Voters,
   Question,
@@ -12,7 +13,56 @@ const {
 
 const saltRounds = 10;
 
-// Login, Signup, Logout Routes
+router.use(passport.initialize());
+router.use(passport.session());
+router.use(function (request, response, next) {
+  response.locals.messages = request.flash();
+  next();
+});
+
+passport.use(
+  "adminAuth",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email, password, done) => {
+      console.log("Authenticating User", email, password);
+      ElectionAdmin.findOne({ where: { email: email } })
+        .then(async (user) => {
+          const result = await bcrypt.compare(password, user.password);
+          if (result) {
+            return done(null, user);
+          } else {
+            return done(null, false, { message: "Invalid password 🤯" });
+          }
+        })
+        .catch(() => {
+          return done(null, false, {
+            message: "Invalid email or You are not Registerd with Us.",
+          });
+        });
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  console.log("Serializing User in session", user.id);
+  done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  console.log("Deserializing User from session", id);
+  ElectionAdmin.findByPk(id)
+    .then((user) => {
+      done(null, user);
+    })
+    .catch((error) => {
+      done(error, null);
+    });
+});
+
 router.get(
   "/login",
   connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/" }),
@@ -33,7 +83,7 @@ router.get("/signup", (req, res) => {
 
 router.post(
   "/login",
-  passport.authenticate("local", {
+  passport.authenticate("adminAuth", {
     successRedirect: "/admin/elections",
     failureRedirect: "/admin/login",
     failureFlash: true,
@@ -88,7 +138,6 @@ router.get("/", async (req, res) => {
   });
 });
 
-// Dashboard and election routes
 router.get(
   "/elections",
   connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
@@ -136,7 +185,7 @@ router.get(
       if (doesElectionBelongToUser.success) {
         const election = await Elections.getElection({ EId: EID });
         res.render("admin/election", {
-          title: "Election" + election.electionName,
+          title: "Election " + election.electionName,
           election,
           voterCount: voterCount.length,
           questionCount: questionCount.length,
@@ -165,10 +214,21 @@ router.post(
       customString: req.body.cstring,
       UId: req.user.id,
     };
-    // console.log(election);
     try {
-      await Elections.createElection(election);
-      res.redirect("/admin/elections");
+      if (
+        election.customString.match(
+          "^[a-zA-Z]+[a-z0-9A-Z]+(?:(?:-|_)+[a-z0-9A-Z]+)*$"
+        )
+      ) {
+        await Elections.createElection(election);
+        res.redirect("/admin/elections");
+      } else {
+        req.flash(
+          "error",
+          "Custom string should only contain alphanumeric characters and should start with a letter"
+        );
+        res.redirect("/admin/elections");
+      }
     } catch (error) {
       req.flash(
         "error",
@@ -207,54 +267,6 @@ router.delete(
       res.status(500).json({
         success: false,
       });
-    }
-  }
-);
-
-router.post(
-  "/election/voters",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
-  async (req, res) => {
-    const EId = req.body.EId;
-    const UId = req.user.id;
-    const voter = {
-      voterid: req.body.voterID,
-      password: req.body.password,
-      votername: req.body.votername,
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
-      EId: req.body.EId,
-    };
-    try {
-      const isUserElection = await Elections.isElectionbelongstoUser({
-        EId,
-        UId,
-      });
-      if (isUserElection.success) {
-        try {
-          await Voters.createVoter(voter);
-          res.redirect(`/admin/election/voters/${EId}`);
-        } catch (error) {
-          console.log(error);
-          req.flash(
-            "error",
-            error.errors.map((error) => error.message)
-          );
-          res.redirect("/admin/election/voters/" + EId);
-        }
-      } else {
-        console.log("Unauthorized Access");
-        req.flash("error", "Unauthorized Access");
-        res.redirect("/admin/elections");
-      }
-    } catch (error) {
-      console.log(error);
-      req.flash(
-        "error",
-        error.errors.map((error) => error.message)
-      );
-      console.log("Redirecting to /admin/elections");
-      res.redirect("/admin/elections/voters/" + EId);
     }
   }
 );
@@ -306,6 +318,54 @@ router.get(
         );
         res.redirect("/admin/elections");
       };
+    }
+  }
+);
+
+router.post(
+  "/election/voters",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    const EId = req.body.EId;
+    const UId = req.user.id;
+    const voter = {
+      voterid: req.body.voterID,
+      password: req.body.password,
+      votername: req.body.votername,
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      EId: req.body.EId,
+    };
+    try {
+      const isUserElection = await Elections.isElectionbelongstoUser({
+        EId,
+        UId,
+      });
+      if (isUserElection.success) {
+        try {
+          await Voters.createVoter(voter);
+          res.redirect(`/admin/election/voters/${EId}`);
+        } catch (error) {
+          console.log(error);
+          req.flash(
+            "error",
+            error.errors.map((error) => error.message)
+          );
+          res.redirect("/admin/election/voters/" + EId);
+        }
+      } else {
+        console.log("Unauthorized Access");
+        req.flash("error", "Unauthorized Access");
+        res.redirect("/admin/elections");
+      }
+    } catch (error) {
+      console.log(error);
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      console.log("Redirecting to /admin/elections");
+      res.redirect("/admin/elections/voters/" + EId);
     }
   }
 );
@@ -362,7 +422,7 @@ router.get(
         EId: EID,
         UId,
       });
-      if (isUserElection.success) {
+      if (isUserElection.success && !isUserElection.islive) {
         const questions = await Question.getAllQuestionsofElection({
           EId: EID,
           UId,
@@ -403,7 +463,6 @@ router.get(
 router.post("/election/questions", async (req, res) => {
   const EID = req.body.EID;
   const UId = req.user.id;
-  console.log(req.body);
   const question = {
     title: req.body.title,
     desc: req.body.desc,
@@ -416,29 +475,31 @@ router.post("/election/questions", async (req, res) => {
       UId,
     });
     if (isUserElection.success) {
-      try {
-        const newQuestion = await Question.createQuestion(question);
-        console.log("New Question Created", newQuestion.id);
-        for (let i = 0; i < options.length; i++) {
-          console.log(options[i], "Creating");
-          await Option.createOption({
-            desc: options[i],
-            QId: newQuestion.id,
-          });
-          console.log(options[i], "Created");
+      if (!isUserElection.islive) {
+        try {
+          const newQuestion = await Question.createQuestion(question);
+          for (let i = 0; i < options.length; i++) {
+            await Option.createOption({
+              desc: options[i],
+              QId: newQuestion.id,
+            });
+          }
+          req.flash("success", "Question Added Successfully");
+          res.redirect(`/admin/election/questions/${EID}`);
+        } catch {
+          (error) => {
+            console.log(error);
+            req.flash(
+              "error",
+              error.errors.map((error) => error.message)
+            );
+            res.redirect(`/admin/election/quesitons/${EID}`);
+          };
         }
-        console.log("Options Added");
-        req.flash("success", "Question Added Successfully");
+      } else {
+        console.log("Election is already live");
+        req.flash("error", "Election is already live");
         res.redirect(`/admin/election/questions/${EID}`);
-      } catch {
-        (error) => {
-          console.log(error);
-          req.flash(
-            "error",
-            error.errors.map((error) => error.message)
-          );
-          res.redirect(`/admin/election/quesitons/${EID}`);
-        };
       }
     } else {
       console.log("Unauthorized Access");
@@ -452,7 +513,6 @@ router.post("/election/questions", async (req, res) => {
         "error",
         error.errors.map((error) => error.message)
       );
-      console.log("Redirecting to /admin/elections");
       res.redirect(`/admin/elections`);
     };
   }
@@ -474,6 +534,75 @@ router.delete(
       if (doesElectionBelongToUser.success) {
         await Question.deleteQuestion({ QId: QID, EID });
         return res.status(200).json({
+          success: true,
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+        });
+      }
+    } catch {
+      (error) => {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+        });
+      };
+    }
+  }
+);
+
+router.put(
+  "/election/launch/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    const EID = req.params.id;
+    const UID = req.user.id;
+    try {
+      const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+        EId: EID,
+        UId: UID,
+      });
+      if (
+        doesElectionBelongToUser.success &&
+        !doesElectionBelongToUser.islive
+      ) {
+        await Elections.launchElection({ EId: EID, UId: UID });
+        res.json({
+          success: true,
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+        });
+      }
+    } catch {
+      (error) => {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+        });
+      };
+    }
+  }
+);
+
+router.put(
+  "/election/stop/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    const EID = req.params.id;
+    const UID = req.user.id;
+    try {
+      const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+        EId: EID,
+        UId: UID,
+      });
+      console.log(doesElectionBelongToUser);
+      if (doesElectionBelongToUser.success && doesElectionBelongToUser.islive) {
+        console.log("Election is live");
+        await Elections.stopElection({ EId: EID, UId: UID });
+        res.json({
           success: true,
         });
       } else {
