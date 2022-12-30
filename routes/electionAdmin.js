@@ -1,10 +1,14 @@
 const passport = require("passport");
 const bcrypt = require("bcrypt");
-const { ElectionAdmin } = require("../models");
-const { Elections } = require("../models");
 const router = require("express").Router();
 const connectEnsureLogin = require("connect-ensure-login");
-const { Voters } = require("../models");
+const {
+  Voters,
+  Question,
+  Option,
+  Elections,
+  ElectionAdmin,
+} = require("../models");
 
 const saltRounds = 10;
 
@@ -109,6 +113,49 @@ router.get(
   }
 );
 
+router.get(
+  "/election/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
+  async (req, res) => {
+    console.log(req.params.id);
+    const EID = req.params.id;
+    const UID = req.user.id;
+    const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+      EId: EID,
+      UId: UID,
+    });
+    const voterCount = await Voters.getAllVotersofElection({
+      EId: EID,
+      UId: UID,
+    });
+    const questionCount = await Question.getAllQuestionsofElection({
+      EId: EID,
+      UId: UID,
+    });
+    try {
+      if (doesElectionBelongToUser.success) {
+        const election = await Elections.getElection({ EId: EID });
+        res.render("admin/election", {
+          title: "Election" + election.electionName,
+          election,
+          voterCount: voterCount.length,
+          questionCount: questionCount.length,
+          csrfToken: req.csrfToken(),
+        });
+      } else {
+        req.flash("error", doesElectionBelongToUser.message);
+        res.redirect("/admin/elections");
+      }
+    } catch (error) {
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      res.redirect("/admin/elections");
+    }
+  }
+);
+
 router.post(
   "/election",
   connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
@@ -133,9 +180,40 @@ router.post(
   }
 );
 
+router.delete(
+  "/elections/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    console.log("Deleting election");
+    const EID = req.params.id;
+    const UID = req.user.id;
+    const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+      EId: EID,
+      UId: UID,
+    });
+    try {
+      if (doesElectionBelongToUser.success) {
+        await Elections.deleteElection({ EId: EID });
+        return res.status(200).json({
+          success: true,
+        });
+      } else {
+        res.status(401).json({
+          success: false,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+      });
+    }
+  }
+);
+
 router.post(
   "/election/voters",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
   async (req, res) => {
     const EId = req.body.EId;
     const UId = req.user.id;
@@ -232,103 +310,184 @@ router.get(
   }
 );
 
-//  Some CSRF cookie Token error is occuring here, Need to fix it later and change the route to DELETE.
-router.delete("/elections/:id", async (req, res) => {
-  const EID = req.params.id;
-  const UID = req.user.id;
-  const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
-    EId: EID,
-    UId: UID,
-  });
-  try {
-    if (doesElectionBelongToUser.success) {
-      await Elections.deleteElection({ EId: EID });
-      return res.status(200).json({
-        success: true,
-      });
-    } else {
-      res.status(401).json({
-        success: false,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
+router.delete(
+  "/election/voters/:eid/:vid",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    const voterId = req.params.vid;
+    const EId = req.params.eid;
+    const UId = req.user.id;
+    const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+      EId,
+      UId,
     });
-  }
-});
-
-router.delete("/election/voters/:eid/:vid", async (req, res) => {
-  const voterId = req.params.vid;
-  const EId = req.params.eid;
-  const UId = req.user.id;
-  const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
-    EId,
-    UId,
-  });
-  try {
-    if (doesElectionBelongToUser.success) {
-      const voter = await Voters.findByPk(voterId);
-      if (voter) {
-        await Voters.remove(voter.id, EId);
-        return res.status(200).json({
-          success: true,
-        });
+    try {
+      if (doesElectionBelongToUser.success) {
+        const voter = await Voters.findByPk(voterId);
+        if (voter) {
+          await Voters.remove(voter.id, EId);
+          return res.status(200).json({
+            success: true,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+          });
+        }
       } else {
-        res.status(404).json({
+        res.status(401).json({
           success: false,
         });
       }
-    } else {
-      res.status(401).json({
-        success: false,
-      });
+    } catch (error) {
+      console.log(error);
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      res.redirect("/admin/election/voters");
     }
-  } catch (error) {
-    console.log(error);
-    req.flash(
-      "error",
-      error.errors.map((error) => error.message)
-    );
-    res.redirect("/admin/election/voters");
+  }
+);
+
+router.get(
+  "/election/questions/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  async (req, res) => {
+    console.log("Question Route accessed");
+    const EID = req.params.id;
+    const UId = req.user.id;
+    try {
+      const isUserElection = await Elections.isElectionbelongstoUser({
+        EId: EID,
+        UId,
+      });
+      if (isUserElection.success) {
+        const questions = await Question.getAllQuestionsofElection({
+          EId: EID,
+          UId,
+        });
+        for (let i = 0; i < questions.length; i++) {
+          questions[i].options = await Option.getAllOptionsOfQuestion({
+            QId: questions[i].id,
+            UId,
+          });
+        }
+        if (req.accepts("html")) {
+          res.render("admin/questions", {
+            title: `Questions of Election ${EID}`,
+            csrfToken: req.csrfToken(),
+            questions,
+            EID: EID,
+          });
+        } else {
+          res.json({
+            questions,
+            EID,
+          });
+        }
+      } else {
+        req.flash("error", isUserElection.message);
+        res.redirect("/admin/elections");
+      }
+    } catch {
+      (err) => {
+        console.log(err);
+        req.flash("error", `Something went wrong, Pls try again later ${err}`);
+        res.redirect("/admin/elections");
+      };
+    }
+  }
+);
+
+router.post("/election/questions", async (req, res) => {
+  const EID = req.body.EID;
+  const UId = req.user.id;
+  console.log(req.body);
+  const question = {
+    title: req.body.title,
+    desc: req.body.desc,
+    EId: req.body.EID,
+  };
+  const options = req.body.options;
+  try {
+    const isUserElection = await Elections.isElectionbelongstoUser({
+      EId: EID,
+      UId,
+    });
+    if (isUserElection.success) {
+      try {
+        const newQuestion = await Question.createQuestion(question);
+        console.log("New Question Created", newQuestion.id);
+        for (let i = 0; i < options.length; i++) {
+          console.log(options[i], "Creating");
+          await Option.createOption({
+            desc: options[i],
+            QId: newQuestion.id,
+          });
+          console.log(options[i], "Created");
+        }
+        console.log("Options Added");
+        req.flash("success", "Question Added Successfully");
+        res.redirect(`/admin/election/questions/${EID}`);
+      } catch {
+        (error) => {
+          console.log(error);
+          req.flash(
+            "error",
+            error.errors.map((error) => error.message)
+          );
+          res.redirect(`/admin/election/quesitons/${EID}`);
+        };
+      }
+    } else {
+      console.log("Unauthorized Access");
+      req.flash("error", "Unauthorized Access");
+      res.redirect("/admin/elections");
+    }
+  } catch {
+    (error) => {
+      console.log(error);
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      console.log("Redirecting to /admin/elections");
+      res.redirect(`/admin/elections`);
+    };
   }
 });
 
-router.get(
-  "/election/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
+router.delete(
+  "/election/question/:id/:QID",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
   async (req, res) => {
-    console.log(req.params.id);
+    console.log("Delete Question Route Accessed");
     const EID = req.params.id;
     const UID = req.user.id;
+    const QID = req.params.QID;
     const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
-      EId: EID,
-      UId: UID,
-    });
-    const voterCount = await Voters.getAllVotersofElection({
       EId: EID,
       UId: UID,
     });
     try {
       if (doesElectionBelongToUser.success) {
-        const election = await Elections.getElection({ EId: EID });
-        res.render("admin/election", {
-          title: "Election" + election.electionName,
-          election,
-          voterCount: voterCount.length,
-          csrfToken: req.csrfToken(),
+        await Question.deleteQuestion({ QId: QID, EID });
+        return res.status(200).json({
+          success: true,
         });
       } else {
-        req.flash("error", doesElectionBelongToUser.message);
-        res.redirect("/admin/elections");
+        res.status(401).json({
+          success: false,
+        });
       }
-    } catch (error) {
-      req.flash(
-        "error",
-        error.errors.map((error) => error.message)
-      );
-      res.redirect("/admin/elections");
+    } catch {
+      (error) => {
+        console.log(error);
+        res.status(500).json({
+          success: false,
+        });
+      };
     }
   }
 );

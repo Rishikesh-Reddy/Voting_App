@@ -11,15 +11,19 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Vote.belongsTo(models.Voters, {
-        foreignKey: "VId",
+        foreignKey: {
+          name: "VId",
+          allowNull: false,
+        },
+        onDelete: "CASCADE",
       });
 
-      Vote.hasOne(models.Question, {
+      Vote.belongsTo(models.Question, {
         foreignKey: "QId",
         onDelete: "CASCADE",
       });
 
-      Vote.hasOne(models.Option, {
+      Vote.belongsTo(models.Option, {
         foreignKey: "OId",
         onDelete: "CASCADE",
       });

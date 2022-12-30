@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // console.log(token)
+        function deleteVoter(id){
+            fetch(`/admin/election/question/<%= EID %>/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    _csrf: token
+                })
+            })
+            .then((res) => {
+                if (res.ok){
+                    window.location.reload()
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+        }
+    </script>
+    <style>
+        .hideMe {
+            -moz-animation: cssAnimation 0s ease-in 5s forwards;
+            /* Firefox */
+            -webkit-animation: cssAnimation 0s ease-in 5s forwards;
+            /* Safari and Chrome */
+            -o-animation: cssAnimation 0s ease-in 5s forwards;
+            /* Opera */
+            animation: cssAnimation 0s ease-in 5s forwards;
+            -webkit-animation-fill-mode: forwards;
+            animation-fill-mode: forwards;
+        }
+        @keyframes cssAnimation {
+            to {
+                width:0;
+                height:0;
+                overflow:hidden;
+                display: none;
+            }
+        }
+        @-webkit-keyframes cssAnimation {
+            to {
+                width:0;
+                height:0;
+                visibility:hidden;
+                display: none;
+            }
+        }
+  </style>
+</head>
+<body>
+    <div class="grid grid-cols-6">
+        <div class="col-start-2 col-span-2">
+            <%- include('header') %>
+            <br><br>
+            <h1 class="text-2xl font-bold">Election Questions of <%= EID %></h1>
+            <br><br>
+            <h2 class="text-l font-bold">Create a Question</h2>
+            <div>
+                <br>       
+                <form action="/admin/election/questions" method="post" class="space-y-2" onsubmit="return validateForm()">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="EID" value="<%= EID %>">
+                    <label for="title" class="font-semibold">Question Title</label>
+                    <input type="text" name="title" id="title" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm" required>
+                    <br>
+                    <label for="title" class="font-semibold">Short Description of Question</label>
+                    <input type="text" name="desc" id="desc" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm" required>
+                    <br>
+                    <div id="options">
+                        <div id="option">
+                            <label for="option1" class="font-semibold">Option 1</label><br>
+                            <div class="flex items-center justify-center">
+                                <input type="text" name="options" id="option1" class="border border-gray-300 rounded text-gray-900 w-[95%] p-2 text-sm">
+                                <button type="button" class="delete-button">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-6 h-6 cursor-pointer delete-button"
+                                    >
+                                        <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="option">
+                            <label for="option2" class="font-semibold">Option 2</label><br>
+                            <div class="flex items-center justify-center">
+                                <input type="text" name="options" id="option2" class="border border-gray-300 rounded text-gray-900 w-[95%] p-2 text-sm">
+                                <button type="button" class="delete-button">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-6 h-6 cursor-pointer delete-button"
+                                    >
+                                        <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                        />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="add-option" class="bg-green-600 text-white px-5 py-1 rounded font-medium mx-1 my-1">Add Option</button>
+                    <button type="submit" class="bg-green-600 text-white px-5 py-1 rounded font-medium mx-1 my-1">Create Election</button>
+                </form> 
+                <div class="hidden" id="optionErr">
+                    <ul class="bg-red-100 rounded border border-red-200 border-2" id="optionErrUl">
+                        <li class="text-center hideMe" id="optionErrLi"></li>
+                    </ul>
+                </div>    
+                <div class="hideMe">
+                    <% if(messages && messages.error && messages.error.length > 0)  { %>
+                        <ul class="bg-red-100 rounded border border-red-200 border-2 hideMe">
+                            <% for(var i=0; i<messages.error.length; i++) { %>
+                                    <li class="text-center hideMe"> <%= messages.error[i] %></li>
+                            <% } %>
+                        </ul>
+                    <% } %>
+                    <% if(messages && messages.success && messages.success.length > 0)  { %>
+                        <ul class="bg-green-100 rounded border border-green-200 border-2 hideMe">
+                            <% for(var i=0; i<messages.success.length; i++) { %>
+                                    <li class="text-center hideMe"> <%= messages.success[i] %></li>
+                            <% } %>
+                        </ul>
+                    <% } %>
+                    <% if(messages && messages.info && messages.info.length > 0)  { %>
+                        <ul class="bg-blue-100 rounded border border-blue-200 border-2 hideMe">
+                            <% for(var i=0; i<messages.info.length; i++) { %>
+                                    <li class="text-center hideMe"> <%= messages.info[i] %></li>
+                            <% } %>
+                        </ul>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="col-start-4 col-span-3">
+            <%- include('question', {
+                questions: questions
+            }) %> 
+        </div>
+    </div>
+    <script>
+        let numberOfOptions = 2;
+        let MIN_OPTIONS = 2;
+        let MAX_OPTIONS = 6;
+
+        let optionsContainer = document.getElementById("options");
+        let addOptionButton = document.getElementById('add-option');
+
+        optionsContainer.addEventListener('click', function(e) {
+            console.log(e.target.tagName)
+            if (e.target.tagName == "path"){
+                e.target.classList.add('delete-button');
+            }
+            if (e.target.tagName == "svg" && numberOfOptions-1 >= MIN_OPTIONS && e.target.classList.contains('delete-button')) {
+                optionsContainer.removeChild(e.target.parentElement.parentElement.parentElement);
+                numberOfOptions--;
+            }
+            else if (numberOfOptions-1 >= MIN_OPTIONS && e.target.tagName == "path" && e.target.classList.contains('delete-button')) {
+                optionsContainer.removeChild(e.target.parentElement.parentElement.parentElement.parentElement);
+                numberOfOptions--;
+            }
+            else if ( e.target.tagName == 'svg' || e.target.tagName == "path"){
+                showError("Atleast 2 Options are required")
+            }
+        })
+
+        addOptionButton.addEventListener("click", function() {
+            console.log(numberOfOptions,  MAX_OPTIONS)
+            if (numberOfOptions >= MAX_OPTIONS) {
+                showError("You can't add more than 6 options");
+                return;
+            }
+            const newOption = document.createElement('div');
+            newOption.classList.add("option");
+            newOption.innerHTML = `
+                <label for="option${numberOfOptions + 1}" class="font-semibold">Option ${numberOfOptions + 1}</label><br>
+                <div class="flex items-center justify-center">
+                    <input type="text" name="options" id="option${numberOfOptions + 1}" class="border border-gray-300 rounded text-gray-900 w-[95%] p-2 text-sm">
+                    <button type="button" class="delete-button">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="w-6 h-6 cursor-pointer delete-button"
+                        >
+                            <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                            />
+                        </svg>
+                    </button>
+                </div>
+            `
+            optionsContainer.appendChild(newOption);
+            numberOfOptions++;
+        })
+
+        function validateForm() {
+            const options = [...optionsContainer.children].map((option) => option.querySelector('input').value);
+            const validOptions = options.filter((option) => option.trim() !== '');
+            
+            if (validOptions.length < 2){
+                showError("Please Enter at least 2 Options")
+                event.preventDefault();
+            }
+            else{
+                return validOptions;
+            }
+        }
+
+
+        function showError(error) {
+            document.getElementById('optionErrLi').innerText = error;
+            document.getElementById('optionErr').classList.remove('hidden')
+            setTimeout(() => {
+                document.getElementById('optionErr').classList.add('hidden')
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

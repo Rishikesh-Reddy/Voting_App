@@ -16,13 +16,49 @@ module.exports = (sequelize, DataTypes) => {
 
       Option.belongsTo(models.Question, {
         foreignKey: "QId",
+        onDelete: "CASCADE",
       });
+    }
+
+    static async getAllOptionsOfQuestion({ QId }) {
+      const options = await Option.findAll({
+        where: {
+          QId: QId,
+        },
+      });
+      return options;
+    }
+
+    static async createOption({ desc, QId }) {
+      console.log("desc: " + desc + " QId: " + QId);
+      const option = await Option.create({
+        desc: desc,
+        QId: QId,
+      });
+      return option;
     }
   }
   Option.init(
     {
-      desc: DataTypes.STRING,
-      optionId: DataTypes.INTEGER,
+      desc: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notNull: {
+            msg: "Option description cannot be null",
+          },
+          notEmpty: {
+            msg: "Option description cannot be empty",
+          },
+          islen: function (value) {
+            if (value.length < 3 || value.length > 255) {
+              throw new Error(
+                "Option description must be between 3 and 255 characters long"
+              );
+            }
+          },
+        },
+      },
     },
     {
       sequelize,

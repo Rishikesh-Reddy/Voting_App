@@ -51,6 +51,14 @@
                 &nbsp registered voters in this Election</h4>
             <br>
             <a href="/admin/election/voters/<%= election.id %>" class="text-xl font-semibold underline">Manage Voters</a>
+            <br><br>
+            <h4 class="">There are 
+                <span id="questionCount" class="bg-gray-300 ml-2 px-2 rounded text-sm">
+                <%= questionCount %>
+                </span>
+                &nbsp Question in this Election</h4>
+            <br>
+            <a href="/admin/election/questions/<%= election.id %>" class="text-xl font-semibold underline">Manage Questions</a>
             <div>
                 <div class="hideMe">
                     <% if(messages && messages.error && messages.error.length > 0)  { %>

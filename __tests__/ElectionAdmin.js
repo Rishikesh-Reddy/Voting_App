@@ -72,9 +72,8 @@ describe("Testing Functionalities of Election Admin", () => {
     res = await agent.post("/admin/election").send({
       _csrf: csrfToken,
       name: "Test Election",
-      customString: "test_election",
+      cstring: "test_election",
     });
-    // console.log(res);
     expect(res.statusCode).toEqual(302);
   });
 
@@ -89,7 +88,7 @@ describe("Testing Functionalities of Election Admin", () => {
     res = await agent.post("/admin/election").send({
       _csrf: csrfToken,
       name: "Test Election 1",
-      customString: "test_election_1",
+      cstring: "test_election_1",
     });
     expect(res.statusCode).toEqual(302);
 
@@ -120,7 +119,7 @@ describe("Testing Functionalities of Election Admin", () => {
     res = await agent.post("/admin/election").send({
       _csrf: csrfToken,
       name: "Test Election 1",
-      customString: "test_election_1",
+      cstring: "test_election_1",
     });
     expect(res.statusCode).toEqual(302);
 
@@ -156,7 +155,7 @@ describe("Testing Functionalities of Election Admin", () => {
     res = await agent.post("/admin/election").send({
       _csrf: csrfToken,
       name: "Test Election 1",
-      customString: "test_election_1",
+      cstring: "test_election_1",
     });
     expect(res.statusCode).toEqual(302);
 
@@ -196,5 +195,87 @@ describe("Testing Functionalities of Election Admin", () => {
         _csrf: csrfToken,
       });
     expect(deleteVoterResponse.statusCode).toEqual(200);
+  });
+
+  test("Testing Adding a Question Functionality", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user1@gmail.com", "password");
+
+    let res = await agent.get("/admin/elections");
+    let csrfToken = extractCSRFToken(res);
+    res = await agent.post("/admin/election").send({
+      _csrf: csrfToken,
+      name: "Test Election 2",
+      cstring: "test_election_2",
+    });
+    expect(res.statusCode).toEqual(302);
+
+    res = await agent.get("/admin/elections").set("Accept", "application/json");
+    let latestElection = JSON.parse(res.text).elections[
+      JSON.parse(res.text).elections.length - 1
+    ];
+
+    res = await agent.get(`/admin/election/questions/${latestElection.id}`);
+    expect(res.statusCode).toBe(200);
+    csrfToken = extractCSRFToken(res);
+
+    addQuestionResponse = await agent.post("/admin/election/questions").send({
+      _csrf: csrfToken,
+      title: "Test Question 1",
+      EID: latestElection.id,
+      desc: "Test Question 1",
+      options: ["Test Option 1", "Test Option 2", "Test Option 3"],
+    });
+    expect(addQuestionResponse.statusCode).toEqual(302);
+  });
+
+  test("Testing Deleting a Question Functionality", async () => {
+    const agent = request.agent(server);
+    await login(agent, "user1@gmail.com", "password");
+
+    let res = await agent.get("/admin/elections");
+    let csrfToken = extractCSRFToken(res);
+    res = await agent.post("/admin/election").send({
+      _csrf: csrfToken,
+      name: "Test Election 3",
+      cstring: "test_election_3",
+    });
+    expect(res.statusCode).toEqual(302);
+
+    res = await agent.get("/admin/elections").set("Accept", "application/json");
+    let latestElection = JSON.parse(res.text).elections[
+      JSON.parse(res.text).elections.length - 1
+    ];
+
+    res = await agent.get(`/admin/election/questions/${latestElection.id}`);
+    expect(res.statusCode).toBe(200);
+    csrfToken = extractCSRFToken(res);
+
+    addQuestionResponse = await agent.post("/admin/election/questions").send({
+      _csrf: csrfToken,
+      title: "Test Question 2",
+      EID: latestElection.id,
+      desc: "Test Question 2",
+      options: ["Option 1", "Option 2", "Option 3"],
+    });
+    expect(addQuestionResponse.statusCode).toBe(302);
+
+    res = await agent
+      .get(`/admin/election/questions/${latestElection.id}`)
+      .set("Accept", "application/json");
+    let questions = JSON.parse(res.text).questions;
+    let latestQuestion = questions[questions.length - 1];
+    console.log(latestQuestion);
+
+    res = await agent.get(`/admin/election/questions/${latestElection.id}`);
+    csrfToken = extractCSRFToken(res);
+    res = await agent
+      .delete(
+        `/admin/election/question/${latestQuestion.EId}/${latestQuestion.id}`
+      )
+      .send({
+        _csrf: csrfToken,
+      });
+    expect(res.statusCode).toBe(200);
   });
 });
