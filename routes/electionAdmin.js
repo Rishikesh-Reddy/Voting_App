@@ -131,6 +131,7 @@ router.post(
         res.redirect("/admin/elections");
       });
     } catch (error) {
+      console.log(error);
       req.flash(
         "error",
         error.errors.map((error) => error.message)
