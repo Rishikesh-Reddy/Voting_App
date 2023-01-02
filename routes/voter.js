@@ -99,8 +99,6 @@ router.get(
         }
         res.redirect("/voter");
       });
-      req.flash("error", "You have No Election Assigned");
-      res.redirect("/voter");
     } else {
       const live = await Elections.isElectionLive({ EID });
       if (live.success) {
