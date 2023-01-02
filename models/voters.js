@@ -37,6 +37,22 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
 
+    static async getElectionOfVoter({ VId, EId }) {
+      return await this.findOne({
+        where: {
+          id: VId,
+        },
+        include: [
+          {
+            model: sequelize.models.Elections,
+            where: {
+              id: EId,
+            },
+          },
+        ],
+      });
+    }
+
     static async createVoter({
       voterid,
       password,
@@ -53,6 +69,7 @@ module.exports = (sequelize, DataTypes) => {
         lastname: lastname,
         EId: EId,
       });
+      // console.log(voter)
       return voter;
     }
 
@@ -80,7 +97,20 @@ module.exports = (sequelize, DataTypes) => {
           },
           islen: function (value) {
             if (value.length < 3) {
-              throw new Error("Voter ID must be atleast 8 characters long");
+              throw new Error("Voter ID must be atleast 3 characters long");
+            }
+          },
+          isUnique: async function (value) {
+            if (value == null) {
+              throw new Error("Voter ID must be atleast 3 characters long");
+            }
+            const voter = await Voters.findOne({
+              where: {
+                voterid: value,
+              },
+            });
+            if (voter) {
+              throw new Error("Voter ID already exists");
             }
           },
         },

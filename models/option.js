@@ -30,12 +30,22 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     static async createOption({ desc, QId }) {
-      console.log("desc: " + desc + " QId: " + QId);
+      // console.log("desc: " + desc + " QId: " + QId);
       const option = await Option.create({
         desc: desc,
         QId: QId,
       });
       return option;
+    }
+
+    static async doesOptionBelongToQuestion({ QID, OID }) {
+      // console.log(OID, QID)
+      return await Option.findOne({
+        where: {
+          QId: QID,
+          id: OID,
+        },
+      });
     }
   }
   Option.init(

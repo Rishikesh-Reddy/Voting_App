@@ -44,6 +44,15 @@ module.exports = (sequelize, DataTypes) => {
       return questions;
     }
 
+    static async getQuesionsOfElection({ EId }) {
+      const questions = await Question.findAll({
+        where: {
+          EId: EId,
+        },
+      });
+      return questions;
+    }
+
     static async deleteQuestion({ QId, EID }) {
       return await Question.destroy({
         where: {

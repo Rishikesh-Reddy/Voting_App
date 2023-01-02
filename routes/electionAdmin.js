@@ -9,16 +9,13 @@ const {
   Option,
   Elections,
   ElectionAdmin,
+  Vote,
 } = require("../models");
 
 const saltRounds = 10;
 
 router.use(passport.initialize());
 router.use(passport.session());
-router.use(function (request, response, next) {
-  response.locals.messages = request.flash();
-  next();
-});
 
 passport.use(
   "adminAuth",
@@ -49,23 +46,36 @@ passport.use(
 
 passport.serializeUser((user, done) => {
   console.log("Serializing User in session", user.id);
-  done(null, user.id);
+  done(null, user);
 });
 
-passport.deserializeUser((id, done) => {
-  console.log("Deserializing User from session", id);
-  ElectionAdmin.findByPk(id)
-    .then((user) => {
-      done(null, user);
-    })
-    .catch((error) => {
-      done(error, null);
+passport.deserializeUser(async (user, done) => {
+  console.log("Deserializing User from session", user.id, user.email);
+  if (user.email && user.id) {
+    const admin = await ElectionAdmin.findOne({
+      where: { email: user.email, id: user.id },
     });
+    done(null, admin);
+  } else if (user.id && user.voterid) {
+    const voter = await Voters.findOne({
+      where: { voterid: user.voterid, id: user.id },
+    });
+    done(null, voter);
+  } else {
+    done("User Not Found", null);
+  }
+});
+
+router.get("/", async (req, res) => {
+  res.render("admin/index", {
+    title: "Admin Dashboard",
+    csrfToken: req.csrfToken(),
+  });
 });
 
 router.get(
   "/login",
-  connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/" }),
+  connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/elections" }),
   (req, res) => {
     res.render("admin/login", {
       title: "Admin Login",
@@ -74,15 +84,20 @@ router.get(
   }
 );
 
-router.get("/signup", (req, res) => {
-  res.render("admin/signup", {
-    title: "Admin Signup",
-    csrfToken: req.csrfToken(),
-  });
-});
+router.get(
+  "/signup",
+  connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/elections" }),
+  (req, res) => {
+    res.render("admin/signup", {
+      title: "Admin Signup",
+      csrfToken: req.csrfToken(),
+    });
+  }
+);
 
 router.post(
   "/login",
+  connectEnsureLogin.ensureLoggedOut({ redirectTo: "/admin/elections" }),
   passport.authenticate("adminAuth", {
     successRedirect: "/admin/elections",
     failureRedirect: "/admin/login",
@@ -93,50 +108,52 @@ router.post(
   }
 );
 
-router.post("/signup", async (req, res) => {
-  console.log("Signing up a new admin");
-  const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
-  const newAdmin = {
-    firstname: req.body.firstname,
-    lastname: req.body.lastname,
-    email: req.body.email,
-    password: hashedPassword,
-    username: req.body.username,
-  };
-  try {
-    const admin = await ElectionAdmin.create(newAdmin);
-    req.login(admin, (error) => {
-      if (error) {
-        // console.log(error);
-        res.status(422).json(error);
-      }
-      res.redirect("/admin/elections");
-    });
-  } catch (error) {
-    req.flash(
-      "error",
-      error.errors.map((error) => error.message)
-    );
-    console.log(error.errors.map((error) => error.message));
-    res.redirect("/admin/signup");
-  }
-});
-
-router.get("/signout", (req, res, next) => {
-  req.logout((err) => {
-    if (err) {
-      next(err);
+router.post(
+  "/signup",
+  connectEnsureLogin.ensureLoggedOut("/admin/elections"),
+  async (req, res) => {
+    console.log("Signing up a new admin");
+    const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+    const newAdmin = {
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      email: req.body.email,
+      password: hashedPassword,
+      username: req.body.username,
+    };
+    try {
+      const admin = await ElectionAdmin.create(newAdmin);
+      req.login(admin, (error) => {
+        if (error) {
+          // console.log(error);
+          res.status(422).json(error);
+        }
+        res.redirect("/admin/elections");
+      });
+    } catch (error) {
+      req.flash(
+        "error",
+        error.errors.map((error) => error.message)
+      );
+      console.log(error.errors.map((error) => error.message));
+      res.redirect("/admin/signup");
     }
-    res.redirect("/");
-  });
-});
+  }
+);
 
-router.get("/", async (req, res) => {
-  res.render("admin/index", {
-    title: "Admin Dashboard",
-    csrfToken: req.csrfToken(),
-  });
-});
+router.get(
+  "/signout",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/elections" }),
+  (req, res, next) => {
+    req.logout((err) => {
+      if (err) {
+        next(err);
+      }
+      console.log("User Logged Out");
+      res.redirect("/");
+    });
+  }
+);
 
 router.get(
   "/elections",
@@ -166,7 +183,7 @@ router.get(
   "/election/:id",
   connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
   async (req, res) => {
-    console.log(req.params.id);
+    // console.log(req.params.id);
     const EID = req.params.id;
     const UID = req.user.id;
     const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
@@ -184,6 +201,7 @@ router.get(
     try {
       if (doesElectionBelongToUser.success) {
         const election = await Elections.getElection({ EId: EID });
+        // console.log(election)
         res.render("admin/election", {
           title: "Election " + election.electionName,
           election,
@@ -214,22 +232,30 @@ router.post(
       customString: req.body.cstring,
       UId: req.user.id,
     };
+    election.customString =
+      election.customString === "" ? null : election.customString;
     try {
-      if (
-        election.customString.match(
-          "^[a-zA-Z]+[a-z0-9A-Z]+(?:(?:-|_)+[a-z0-9A-Z]+)*$"
-        )
-      ) {
-        await Elections.createElection(election);
-        res.redirect("/admin/elections");
+      if (election.customString !== null) {
+        if (
+          election.customString.match(
+            "^[a-zA-Z]+[a-z0-9A-Z]+(?:(?:-|_)+[a-z0-9A-Z]+)*$"
+          )
+        ) {
+          await Elections.createElection(election);
+          res.redirect("/admin/elections");
+        } else {
+          req.flash(
+            "error",
+            "Custom string should only contain alphanumeric characters and should start with a letter"
+          );
+          res.redirect("/admin/elections");
+        }
       } else {
-        req.flash(
-          "error",
-          "Custom string should only contain alphanumeric characters and should start with a letter"
-        );
+        await Elections.createElection(election);
         res.redirect("/admin/elections");
       }
     } catch (error) {
+      console.log(error);
       req.flash(
         "error",
         error.errors.map((error) => error.message)
@@ -242,7 +268,7 @@ router.post(
 
 router.delete(
   "/elections/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
   async (req, res) => {
     console.log("Deleting election");
     const EID = req.params.id;
@@ -273,7 +299,7 @@ router.delete(
 
 router.get(
   "/election/voters/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
   async (req, res) => {
     const EId = req.params.id;
     const UId = req.user.id;
@@ -293,6 +319,7 @@ router.get(
               title: "Admin Dashboard",
               voters,
               EID: EId,
+              election: isUserElection,
               csrfToken: req.csrfToken(),
             });
           } catch (error) {
@@ -324,7 +351,7 @@ router.get(
 
 router.post(
   "/election/voters",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
   async (req, res) => {
     const EId = req.body.EId;
     const UId = req.user.id;
@@ -341,8 +368,9 @@ router.post(
         EId,
         UId,
       });
-      if (isUserElection.success) {
+      if (isUserElection.success && !isUserElection.ended) {
         try {
+          // console.log(voter)
           await Voters.createVoter(voter);
           res.redirect(`/admin/election/voters/${EId}`);
         } catch (error) {
@@ -355,7 +383,10 @@ router.post(
         }
       } else {
         console.log("Unauthorized Access");
-        req.flash("error", "Unauthorized Access");
+        req.flash(
+          "error",
+          isUserElection.ended ? "Election Ended" : "Unauthorized Access"
+        );
         res.redirect("/admin/elections");
       }
     } catch (error) {
@@ -372,7 +403,7 @@ router.post(
 
 router.delete(
   "/election/voters/:eid/:vid",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/" }),
   async (req, res) => {
     const voterId = req.params.vid;
     const EId = req.params.eid;
@@ -412,7 +443,7 @@ router.delete(
 
 router.get(
   "/election/questions/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin" }),
   async (req, res) => {
     console.log("Question Route accessed");
     const EID = req.params.id;
@@ -422,7 +453,7 @@ router.get(
         EId: EID,
         UId,
       });
-      if (isUserElection.success && !isUserElection.islive) {
+      if (isUserElection.success && !isUserElection.isLive) {
         const questions = await Question.getAllQuestionsofElection({
           EId: EID,
           UId,
@@ -438,6 +469,7 @@ router.get(
             title: `Questions of Election ${EID}`,
             csrfToken: req.csrfToken(),
             questions,
+            election: isUserElection,
             EID: EID,
           });
         } else {
@@ -474,8 +506,8 @@ router.post("/election/questions", async (req, res) => {
       EId: EID,
       UId,
     });
-    if (isUserElection.success) {
-      if (!isUserElection.islive) {
+    if (isUserElection.success && !isUserElection.ended) {
+      if (!isUserElection.isLive) {
         try {
           const newQuestion = await Question.createQuestion(question);
           for (let i = 0; i < options.length; i++) {
@@ -503,7 +535,10 @@ router.post("/election/questions", async (req, res) => {
       }
     } else {
       console.log("Unauthorized Access");
-      req.flash("error", "Unauthorized Access");
+      req.flash(
+        "error",
+        isUserElection.ended ? "Election Ended" : "Unauthorized Access"
+      );
       res.redirect("/admin/elections");
     }
   } catch {
@@ -520,7 +555,7 @@ router.post("/election/questions", async (req, res) => {
 
 router.delete(
   "/election/question/:id/:QID",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin" }),
   async (req, res) => {
     console.log("Delete Question Route Accessed");
     const EID = req.params.id;
@@ -554,8 +589,9 @@ router.delete(
 
 router.put(
   "/election/launch/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin" }),
   async (req, res) => {
+    console.log("Launch Election Route Accessed");
     const EID = req.params.id;
     const UID = req.user.id;
     try {
@@ -565,15 +601,28 @@ router.put(
       });
       if (
         doesElectionBelongToUser.success &&
-        !doesElectionBelongToUser.islive
+        !doesElectionBelongToUser.isLive &&
+        !doesElectionBelongToUser.ended
       ) {
-        await Elections.launchElection({ EId: EID, UId: UID });
-        res.json({
-          success: true,
+        const questionCount = await Question.getAllQuestionsofElection({
+          EId: EID,
+          UId: UID,
         });
+        if (questionCount.length > 1) {
+          await Elections.launchElection({ EId: EID, UId: UID });
+          res.json({
+            success: true,
+          });
+        } else {
+          res.json({
+            success: false,
+            message: "Election must have atleast 2 questions",
+          });
+        }
       } else {
         res.status(401).json({
           success: false,
+          ended: doesElectionBelongToUser.ended,
         });
       }
     } catch {
@@ -589,7 +638,7 @@ router.put(
 
 router.put(
   "/election/stop/:id",
-  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin/login" }),
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin" }),
   async (req, res) => {
     const EID = req.params.id;
     const UID = req.user.id;
@@ -599,15 +648,21 @@ router.put(
         UId: UID,
       });
       console.log(doesElectionBelongToUser);
-      if (doesElectionBelongToUser.success && doesElectionBelongToUser.islive) {
-        console.log("Election is live");
-        await Elections.stopElection({ EId: EID, UId: UID });
+      if (
+        doesElectionBelongToUser.success &&
+        doesElectionBelongToUser.isLive &&
+        !doesElectionBelongToUser.ended
+      ) {
+        await Elections.endElection({ EId: EID, UId: UID });
         res.json({
           success: true,
         });
       } else {
-        res.status(401).json({
+        res.json({
           success: false,
+          message: doesElectionBelongToUser.ended
+            ? "Election is already Ended"
+            : "Election is not live",
         });
       }
     } catch {
@@ -616,6 +671,63 @@ router.put(
         res.status(500).json({
           success: false,
         });
+      };
+    }
+  }
+);
+
+router.get(
+  "/election/result/:id",
+  connectEnsureLogin.ensureLoggedIn({ redirectTo: "/admin" }),
+  async (req, res) => {
+    const EID = req.params.id;
+    const UID = req.user.id;
+    try {
+      const doesElectionBelongToUser = await Elections.isElectionbelongstoUser({
+        EId: EID,
+        UId: UID,
+      });
+      if (doesElectionBelongToUser.success) {
+        const questions = await Question.getAllQuestionsofElection({
+          EId: EID,
+          UId: UID,
+        });
+        let result = [];
+        for (let i = 0; i < questions.length; i++) {
+          const question = questions[i];
+          const options = await Option.getAllOptionsOfQuestion({
+            QId: question.id,
+          });
+          let optionResult = [];
+          let count = 0;
+          for (let j = 0; j < options.length; j++) {
+            const option = options[j];
+            const votes = await Vote.getVotesOfOption({ OID: option.id });
+            count += votes.length;
+            optionResult.push({
+              option: option,
+              votes: votes.length,
+            });
+          }
+          result.push({
+            votes: count,
+            question: question,
+            options: optionResult,
+          });
+        }
+        res.render("admin/result", {
+          EID: EID,
+          results: result,
+          title: "Election Result",
+          csrfToken: req.csrfToken(),
+        });
+      } else {
+        req.flash("error", "Unauthorized Access");
+        res.redirect("/admin/elections");
+      }
+    } catch {
+      (error) => {
+        console.log(error);
       };
     }
   }

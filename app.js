@@ -5,6 +5,7 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const csrf = require("tiny-csrf");
 const cookieParser = require("cookie-parser");
+const { Elections } = require("./models");
 
 const app = express();
 app.use(bodyParser.json());
@@ -34,6 +35,55 @@ app.use(function (request, response, next) {
 app.get("/", (req, res) => {
   res.render("index");
 });
+
+app.get("/election/:id([0-9]+)", async (req, res) => {
+  // console.log(req.params.id)
+  try {
+    if (req.params.id) {
+      const election = await Elections.findByPk(req.params.id);
+      if (election && (election.ended || election.isLive)) {
+        res.redirect("/voter");
+      } else {
+        res.render("404");
+      }
+    } else {
+      res.render("404");
+    }
+  } catch {
+    (error) => {
+      console.log(error);
+      res.render("404");
+    };
+  }
+});
+
+app.get(
+  "/election/:cstring([a-zA-z]+[0-9a-zA-Z]*(?:_[a-z0-9]+)*)",
+  async (req, res) => {
+    // console.log(req.params.cstring)
+    try {
+      if (req.params.cstring) {
+        const election = await Elections.findOne({
+          where: {
+            customString: req.params.cstring,
+          },
+        });
+        if (election && (election.ended || election.isLive)) {
+          res.redirect("/voter");
+        } else {
+          res.render("404");
+        }
+      } else {
+        res.render("404");
+      }
+    } catch {
+      (error) => {
+        console.log(error);
+        res.render("404");
+      };
+    }
+  }
+);
 
 app.use("/admin", require("./routes/electionAdmin"));
 app.use("/voter", require("./routes/voter"));

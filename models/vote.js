@@ -28,6 +28,50 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: "CASCADE",
       });
     }
+
+    static async createVote({ VID, QID, OID }) {
+      if (VID && QID && OID) {
+        const vote = await Vote.create({
+          VId: VID,
+          QId: QID,
+          OId: OID,
+        });
+        return vote;
+      } else {
+        return null;
+      }
+    }
+
+    static async getVotesOfOption({ OID }) {
+      if (OID) {
+        const votes = await Vote.findAll({
+          where: {
+            OId: OID,
+          },
+        });
+        return votes;
+      } else {
+        return null;
+      }
+    }
+
+    static async hasVoted({ VID, QID }) {
+      if (VID && QID) {
+        const vote = await Vote.findOne({
+          where: {
+            VId: VID,
+            QId: QID,
+          },
+        });
+        if (vote) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
   }
   Vote.init(
     {},

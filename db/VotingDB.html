@@ -234,7 +234,7 @@
   <body>
     <h2>Data dictionary index</h2>
     <ul id="index">
-      <li><strong>Database: wd-voting-dev</strong></li>
+      <li><strong>Database: </strong><strong>wd-voting-dev</strong></li>
       <li>
         <br /><strong>Tables</strong>
         <ul>
@@ -277,18 +277,6 @@
           <td class="value">
             nextval('public."ElectionAdmins_id_seq"'::regclass)
           </td>
-          <td>
-            <p class="max-td-wth"><em></em></p>
-          </td>
-        </tr>
-        <tr>
-          <td>userId</td>
-          <td class="data-type">character varying(255)</td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="value"></td>
           <td>
             <p class="max-td-wth"><em></em></p>
           </td>
@@ -442,18 +430,6 @@
           </td>
         </tr>
         <tr>
-          <td>electionId</td>
-          <td class="data-type">character varying(255)</td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="value"></td>
-          <td>
-            <p class="max-td-wth"><em></em></p>
-          </td>
-        </tr>
-        <tr>
           <td>electionName</td>
           <td class="data-type">character varying(255)</td>
           <td class="bool-field"></td>
@@ -473,6 +449,30 @@
           <td class="bool-field"></td>
           <td class="bool-field"></td>
           <td class="value"></td>
+          <td>
+            <p class="max-td-wth"><em></em></p>
+          </td>
+        </tr>
+        <tr>
+          <td>isLive</td>
+          <td class="data-type">boolean</td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="value">false</td>
+          <td>
+            <p class="max-td-wth"><em></em></p>
+          </td>
+        </tr>
+        <tr>
+          <td>ended</td>
+          <td class="data-type">boolean</td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="bool-field"></td>
+          <td class="value">false</td>
           <td>
             <p class="max-td-wth"><em></em></p>
           </td>
@@ -502,7 +502,7 @@
           </td>
         </tr>
         <tr>
-          <td>userId</td>
+          <td>UId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -540,7 +540,7 @@
               <tr>
                 <td>custom_fkey_userId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>userId</td>
+                <td>UId</td>
                 <td>
                   <a href="#public.ElectionAdmins">public.ElectionAdmins</a>
                 </td>
@@ -602,18 +602,6 @@
           </td>
         </tr>
         <tr>
-          <td>optionId</td>
-          <td class="data-type">character varying(255)</td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="value"></td>
-          <td>
-            <p class="max-td-wth"><em></em></p>
-          </td>
-        </tr>
-        <tr>
           <td>createdAt</td>
           <td class="data-type">timestamp with time zone</td>
           <td class="bool-field"></td>
@@ -638,7 +626,7 @@
           </td>
         </tr>
         <tr>
-          <td>questionId</td>
+          <td>QId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -676,7 +664,7 @@
               <tr>
                 <td>custom_fkey_questionId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>questionId</td>
+                <td>QId</td>
                 <td><a href="#public.Questions">public.Questions</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -719,18 +707,6 @@
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
           <td class="value">nextval('public."Questions_id_seq"'::regclass)</td>
-          <td>
-            <p class="max-td-wth"><em></em></p>
-          </td>
-        </tr>
-        <tr>
-          <td>questionId</td>
-          <td class="data-type">character varying(255)</td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="value"></td>
           <td>
             <p class="max-td-wth"><em></em></p>
           </td>
@@ -784,7 +760,7 @@
           </td>
         </tr>
         <tr>
-          <td>electionId</td>
+          <td>EId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -822,7 +798,7 @@
               <tr>
                 <td>custom_fkey_electionId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>electionId</td>
+                <td>EId</td>
                 <td><a href="#public.Elections">public.Elections</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -1018,7 +994,7 @@
           </td>
         </tr>
         <tr>
-          <td>electionId</td>
+          <td>EId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -1056,7 +1032,7 @@
               <tr>
                 <td>custom_fkey_electionId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>electionId</td>
+                <td>EId</td>
                 <td><a href="#public.Elections">public.Elections</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -1104,18 +1080,6 @@
           </td>
         </tr>
         <tr>
-          <td>voteId</td>
-          <td class="data-type">character varying(255)</td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="bool-field"></td>
-          <td class="value"></td>
-          <td>
-            <p class="max-td-wth"><em></em></p>
-          </td>
-        </tr>
-        <tr>
           <td>createdAt</td>
           <td class="data-type">timestamp with time zone</td>
           <td class="bool-field"></td>
@@ -1140,7 +1104,7 @@
           </td>
         </tr>
         <tr>
-          <td>questionId</td>
+          <td>QId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -1152,7 +1116,7 @@
           </td>
         </tr>
         <tr>
-          <td>optionId</td>
+          <td>OId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -1164,7 +1128,7 @@
           </td>
         </tr>
         <tr>
-          <td>voterId</td>
+          <td>VId</td>
           <td class="data-type">integer</td>
           <td class="bool-field"></td>
           <td class="bool-field">&#10003;</td>
@@ -1202,7 +1166,7 @@
               <tr>
                 <td>custom_fkey_questionId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>questionId</td>
+                <td>QId</td>
                 <td><a href="#public.Questions">public.Questions</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -1212,7 +1176,7 @@
               <tr>
                 <td>custom_fkey_optionId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>optionId</td>
+                <td>OId</td>
                 <td><a href="#public.Options">public.Options</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -1222,7 +1186,7 @@
               <tr>
                 <td>custom_fkey_voterId</td>
                 <td class="value constr-type">FOREIGN KEY</td>
-                <td>voterId</td>
+                <td>VId</td>
                 <td><a href="#public.Voters">public.Voters</a></td>
                 <td class="value"></td>
                 <td colspan="3">
@@ -1242,7 +1206,7 @@
       Generated by
       <a href="https://pgmodeler.io"> PostgreSQL Database Modeler - pgModeler</a
       ><br />
-      Copyright © 2006 - 2022 Raphael Araújo e Silva
+      Copyright © 2006 - 2023 Raphael Araújo e Silva
     </footer>
   </body>
 </html>

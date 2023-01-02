@@ -19,6 +19,9 @@
               <th scope="col" class="py-3 px-6">
                   Action
               </th>
+              <th scope="col" class="py-3 px-6">
+                Ended
+            </th>
           </tr>
       </thead>
       <tbody>
@@ -32,6 +35,13 @@
             </td>
             <td class="py-4 px-6">
                 <a href="#" class="font-medium text-blue-600 hover:underline" onclick="deleteElection(<%= election.id %>)">Delete</a>
+            </td>
+            <td class="py-4 px-6">
+              <% if (!election.ended) { %>
+                ❌
+              <% } else { %>
+                ✅
+              <% } %>
             </td>
         </tr>
         <% }) %>

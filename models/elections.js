@@ -41,6 +41,65 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
     }
+    static async isElectionLive({ EID }) {
+      let election = await this.findOne({
+        where: {
+          id: EID,
+        },
+      });
+      // console.log("Election is Live: ",election.isLive)
+      if (election && election.isLive) {
+        return {
+          success: election.isLive,
+          ended: election.ended,
+          message: "Success",
+        };
+      } else if (election && !election.isLive) {
+        return {
+          success: election.isLive,
+          ended: election.ended,
+          message: "Election assigned to you is Not Live Yet!!!",
+        };
+      } else {
+        return {
+          success: false,
+          message: "Election Does Not Exist",
+        };
+      }
+    }
+
+    static async electionEnded({ EID }) {
+      if (EID == null || EID == undefined || EID == "") {
+        return {
+          success: false,
+          message: "Election Not Found",
+        };
+      } else {
+        const election = await this.findOne({
+          where: {
+            id: EID,
+          },
+        });
+        if (election) {
+          if (election.ended) {
+            return {
+              success: true,
+              message: "Election Ended",
+            };
+          } else {
+            return {
+              success: false,
+              message: "Election Not Ended",
+            };
+          }
+        } else {
+          return {
+            success: false,
+            message: "Election Not Found",
+          };
+        }
+      }
+    }
 
     static async getLiveElectionsofUser({ UId }) {
       return await this.findAll({
@@ -63,7 +122,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     }
 
-    static async stopElection({ EId, UId }) {
+    static async endElection({ EId, UId }) {
       let election = await this.findOne({
         where: {
           id: EId,
@@ -71,7 +130,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
       if (election) {
-        await election.update({ isLive: false });
+        await election.update({ isLive: false, ended: true });
       }
     }
 
@@ -92,7 +151,8 @@ module.exports = (sequelize, DataTypes) => {
       if (election) {
         return {
           success: true,
-          islive: election.isLive,
+          isLive: election.isLive,
+          ended: election.ended,
         };
       } else {
         return {
@@ -169,6 +229,10 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       isLive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      ended: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },

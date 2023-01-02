@@ -7,9 +7,9 @@
 -- Database creation must be performed outside a multi lined SQL file. 
 -- These commands were put in this file only as a convenience.
 -- 
--- object: "wd-voting-test" | type: DATABASE --
--- DROP DATABASE IF EXISTS "wd-voting-test";
-CREATE DATABASE "wd-voting-test"
+-- object: "wd-voting-dev" | type: DATABASE --
+-- DROP DATABASE IF EXISTS "wd-voting-dev";
+CREATE DATABASE "wd-voting-dev"
 	ENCODING = 'UTF8'
 	LC_COLLATE = 'English_India.1252'
 	LC_CTYPE = 'English_India.1252'
@@ -86,7 +86,7 @@ CREATE TABLE public."Voters" (
 	lastname character varying(255),
 	"createdAt" timestamp with time zone NOT NULL,
 	"updatedAt" timestamp with time zone NOT NULL,
-	"electionId" integer,
+	"EId" integer,
 	CONSTRAINT "Voters_pkey" PRIMARY KEY (id)
 );
 -- ddl-end --
@@ -112,13 +112,13 @@ ALTER SEQUENCE public."Elections_id_seq" OWNER TO postgres;
 -- DROP TABLE IF EXISTS public."Elections" CASCADE;
 CREATE TABLE public."Elections" (
 	id integer NOT NULL DEFAULT nextval('public."Elections_id_seq"'::regclass),
-	"electionId" character varying(255),
 	"electionName" character varying(255),
 	"customString" character varying(255),
+	"isLive" boolean DEFAULT false,
+	ended boolean DEFAULT false,
 	"createdAt" timestamp with time zone NOT NULL,
 	"updatedAt" timestamp with time zone NOT NULL,
-	"userId" integer,
-	"isLive" boolean DEFAULT false,
+	"UId" integer,
 	CONSTRAINT "Elections_pkey" PRIMARY KEY (id)
 );
 -- ddl-end --
@@ -144,12 +144,11 @@ ALTER SEQUENCE public."Questions_id_seq" OWNER TO postgres;
 -- DROP TABLE IF EXISTS public."Questions" CASCADE;
 CREATE TABLE public."Questions" (
 	id integer NOT NULL DEFAULT nextval('public."Questions_id_seq"'::regclass),
-	"questionId" character varying(255),
 	title character varying(255),
 	"desc" text,
 	"createdAt" timestamp with time zone NOT NULL,
 	"updatedAt" timestamp with time zone NOT NULL,
-	"electionId" integer,
+	"EId" integer,
 	CONSTRAINT "Questions_pkey" PRIMARY KEY (id)
 );
 -- ddl-end --
@@ -176,10 +175,9 @@ ALTER SEQUENCE public."Options_id_seq" OWNER TO postgres;
 CREATE TABLE public."Options" (
 	id integer NOT NULL DEFAULT nextval('public."Options_id_seq"'::regclass),
 	"desc" character varying(255),
-	"optionId" character varying(255),
 	"createdAt" timestamp with time zone NOT NULL,
 	"updatedAt" timestamp with time zone NOT NULL,
-	"questionId" integer,
+	"QId" integer,
 	CONSTRAINT "Options_pkey" PRIMARY KEY (id)
 );
 -- ddl-end --
@@ -205,12 +203,11 @@ ALTER SEQUENCE public."Votes_id_seq" OWNER TO postgres;
 -- DROP TABLE IF EXISTS public."Votes" CASCADE;
 CREATE TABLE public."Votes" (
 	id integer NOT NULL DEFAULT nextval('public."Votes_id_seq"'::regclass),
-	"voteId" character varying(255),
 	"createdAt" timestamp with time zone NOT NULL,
 	"updatedAt" timestamp with time zone NOT NULL,
-	"questionId" integer,
-	"optionId" integer,
-	"voterId" integer,
+	"QId" integer,
+	"OId" integer,
+	"VId" integer,
 	CONSTRAINT "Votes_pkey" PRIMARY KEY (id)
 );
 -- ddl-end --
@@ -219,51 +216,51 @@ ALTER TABLE public."Votes" OWNER TO postgres;
 
 -- object: "custom_fkey_electionId" | type: CONSTRAINT --
 -- ALTER TABLE public."Voters" DROP CONSTRAINT IF EXISTS "custom_fkey_electionId" CASCADE;
-ALTER TABLE public."Voters" ADD CONSTRAINT "custom_fkey_electionId" FOREIGN KEY ("electionId")
+ALTER TABLE public."Voters" ADD CONSTRAINT "custom_fkey_electionId" FOREIGN KEY ("EId")
 REFERENCES public."Elections" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_userId" | type: CONSTRAINT --
 -- ALTER TABLE public."Elections" DROP CONSTRAINT IF EXISTS "custom_fkey_userId" CASCADE;
-ALTER TABLE public."Elections" ADD CONSTRAINT "custom_fkey_userId" FOREIGN KEY ("userId")
+ALTER TABLE public."Elections" ADD CONSTRAINT "custom_fkey_userId" FOREIGN KEY ("UId")
 REFERENCES public."ElectionAdmins" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_electionId" | type: CONSTRAINT --
 -- ALTER TABLE public."Questions" DROP CONSTRAINT IF EXISTS "custom_fkey_electionId" CASCADE;
-ALTER TABLE public."Questions" ADD CONSTRAINT "custom_fkey_electionId" FOREIGN KEY ("electionId")
+ALTER TABLE public."Questions" ADD CONSTRAINT "custom_fkey_electionId" FOREIGN KEY ("EId")
 REFERENCES public."Elections" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_questionId" | type: CONSTRAINT --
 -- ALTER TABLE public."Options" DROP CONSTRAINT IF EXISTS "custom_fkey_questionId" CASCADE;
-ALTER TABLE public."Options" ADD CONSTRAINT "custom_fkey_questionId" FOREIGN KEY ("questionId")
+ALTER TABLE public."Options" ADD CONSTRAINT "custom_fkey_questionId" FOREIGN KEY ("QId")
 REFERENCES public."Questions" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_questionId" | type: CONSTRAINT --
 -- ALTER TABLE public."Votes" DROP CONSTRAINT IF EXISTS "custom_fkey_questionId" CASCADE;
-ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_questionId" FOREIGN KEY ("questionId")
+ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_questionId" FOREIGN KEY ("QId")
 REFERENCES public."Questions" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_optionId" | type: CONSTRAINT --
 -- ALTER TABLE public."Votes" DROP CONSTRAINT IF EXISTS "custom_fkey_optionId" CASCADE;
-ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_optionId" FOREIGN KEY ("optionId")
+ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_optionId" FOREIGN KEY ("OId")
 REFERENCES public."Options" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "custom_fkey_voterId" | type: CONSTRAINT --
 -- ALTER TABLE public."Votes" DROP CONSTRAINT IF EXISTS "custom_fkey_voterId" CASCADE;
-ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_voterId" FOREIGN KEY ("voterId")
+ALTER TABLE public."Votes" ADD CONSTRAINT "custom_fkey_voterId" FOREIGN KEY ("VId")
 REFERENCES public."Voters" (id) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ON DELETE CASCADE ON UPDATE NO ACTION;
 -- ddl-end --
 
 -- object: "grant_CU_eb94f049ac" | type: PERMISSION --
