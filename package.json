@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js -e js, ejs",
+    "start": "node index.js",
     "prepare": "husky install",
     "pretest": "set NODE_ENV=test&&npx sequelize-cli db:drop&&npx sequelize-cli db:create",
     "test": "set NODE_ENV=test&&jest --detectOpenHandles --silent --forceExit"
