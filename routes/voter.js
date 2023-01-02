@@ -91,9 +91,14 @@ router.get(
   connectEnsureLogin.ensureLoggedIn({ redirectTo: "/voter/login" }),
   async (req, res) => {
     const EID = req.user.EId;
-    // console.log(req.user)
     if (EID == null) {
       console.log("No Election Assigned");
+      req.logout((err) => {
+        if (err) {
+          console.log(err);
+        }
+        res.redirect("/voter");
+      });
       req.flash("error", "You have No Election Assigned");
       res.redirect("/voter");
     } else {
