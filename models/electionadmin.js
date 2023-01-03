@@ -19,16 +19,9 @@ module.exports = (sequelize, DataTypes) => {
     {
       firstname: {
         type: DataTypes.STRING,
-        allowNull: false,
         validate: {
-          notNull: {
-            msg: "First name is required",
-          },
-          notEmpty: {
-            msg: "First name is required",
-          },
           islen: function (value) {
-            if (value.length < 2) {
+            if (value.length > 1 && value.length < 3) {
               throw new Error("First name must be at least 2 characters long");
             }
           },
