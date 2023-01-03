@@ -105,6 +105,7 @@
             var answers = document.querySelectorAll("input[type=radio]:checked");
             if (questions.length != answers.length) {
                 event.preventDefault();
+                // console.log("Error Occured All Questions not Answered")
                 alert("Please answer all questions");
             }
         });

@@ -178,13 +178,16 @@ router.get(
 
 router.post("/election", async (req, res) => {
   try {
-    // console.log(req.body);
-    const questionVoted = req.body.questions;
+    let questionVoted = [];
+    if (typeof req.body.questions == "string") {
+      questionVoted.push(req.body.questions);
+    } else {
+      questionVoted = req.body.questions;
+    }
     const options = [];
     for (let i = 0; i < questionVoted.length; i++) {
       options.push(req.body[`option${i}`]);
     }
-    // console.log(questionVoted, options)
     if (questionVoted.length != options.length) {
       req.flash("error", "There was Some Issue, Please try Again !!!");
       res.redirect("/voter/election");

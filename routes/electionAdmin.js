@@ -50,7 +50,11 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (user, done) => {
-  console.log("Deserializing User from session", user.id, user.email);
+  console.log(
+    "Deserializing User from session",
+    user.id,
+    user.email || user.voterid
+  );
   if (user.email && user.id) {
     const admin = await ElectionAdmin.findOne({
       where: { email: user.email, id: user.id },
@@ -609,7 +613,7 @@ router.put(
           EId: EID,
           UId: UID,
         });
-        if (questionCount.length > 1) {
+        if (questionCount.length >= 1) {
           await Elections.launchElection({ EId: EID, UId: UID });
           res.json({
             success: true,
@@ -617,7 +621,7 @@ router.put(
         } else {
           res.json({
             success: false,
-            message: "Election must have atleast 2 questions",
+            message: "Election must have atleast 1 question to launch Election",
           });
         }
       } else {
