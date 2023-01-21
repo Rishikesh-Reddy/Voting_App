@@ -97,4 +97,4 @@ Application Software Requirements
 
 ## Tutorial For Installation
 
-Here is simple Installation Tutorial to follow [Watch Video](videolink)
+Here is simple Installation Tutorial to follow [Watch Video](https://drive.google.com/file/d/1C5DE6Q8I757vssoTa2HxqitnsGlvWX9e/view?usp=share_link)
